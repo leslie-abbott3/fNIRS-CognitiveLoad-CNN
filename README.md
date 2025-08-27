@@ -21,15 +21,32 @@ Install dependencies:
 ```bash
 pip install -r requirements.txt
 
-📂 Project Structure
-
-src/preprocess.py → Cleans and normalizes raw fNIRS signals
-
-src/train_cnn.py → Defines and trains CNN models
-
-src/evaluate.py → Evaluates model accuracy, ROC, and confusion matrix
-
-notebooks/exploratory_analysis.ipynb → Data visualization and EDA
+fNIRS-CognitiveLoad-DeepLearning/
+│
+├── config/
+│   └── config.yaml              # Hyperparameters and training settings
+│
+├── data/
+│   ├── raw/                     # Place raw CSV files here
+│   └── processed/               # Output of preprocessing
+│
+├── notebooks/
+│   └── exploratory_analysis.ipynb   # EDA, visualization
+│
+├── src/
+│   ├── data_utils.py            # Synthetic data generator & loaders
+│   ├── preprocess.py            # Filtering, normalization, windowing
+│   ├── models.py                # CNN + baseline ML models
+│   ├── train.py                 # Training loop with TensorBoard logging
+│   ├── evaluate.py              # Model evaluation (sklearn metrics)
+│   └── config_loader.py         # Reads YAML configs
+│
+├── models/
+│   └── saved_model/             # Trained models
+│
+├── requirements.txt
+├── README.md
+└── LICENSE
 
 ▶️ Usage
 
