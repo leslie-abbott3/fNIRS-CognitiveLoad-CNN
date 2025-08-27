@@ -1,0 +1,15 @@
+model:
+  type: "cnn"
+  conv_filters: [32, 64]
+  kernel_sizes: [5, 3]
+  dropout: 0.3
+  dense_units: 128
+
+training:
+  batch_size: 32
+  epochs: 30
+  validation_split: 0.2
+
+data:
+  window_size: 100
+  overlap: 0.5
