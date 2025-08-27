@@ -1,43 +1,40 @@
-import tensorflow as tf
-from tensorflow.keras import layers, models
+import os, argparse, yaml
 import numpy as np
-import os, argparse
+from tensorflow.keras.callbacks import TensorBoard
+from models import build_cnn
+from data_utils import generate_synthetic_data
 
 def load_data(path):
     X, y = [], []
-    for file in os.listdir(path):
-        if file.endswith(".csv"):
-            arr = np.loadtxt(os.path.join(path, file), delimiter=",")
+    for f in os.listdir(path):
+        if f.endswith(".csv"):
+            arr = np.loadtxt(os.path.join(path, f), delimiter=",")
             X.append(arr)
-            label = 0 if "low" in file else 1  # mock labels
+            label = 0 if "low" in f else 1
             y.append(label)
     return np.array(X), np.array(y)
 
-def build_cnn(input_shape):
-    model = models.Sequential([
-        layers.Conv1D(32, kernel_size=3, activation="relu", input_shape=input_shape),
-        layers.MaxPooling1D(pool_size=2),
-        layers.Conv1D(64, kernel_size=3, activation="relu"),
-        layers.MaxPooling1D(pool_size=2),
-        layers.Flatten(),
-        layers.Dense(64, activation="relu"),
-        layers.Dense(1, activation="sigmoid")
-    ])
-    model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-    return model
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="data/processed")
-    parser.add_argument("--epochs", type=int, default=20)
-    parser.add_argument("--batch", type=int, default=32)
+    parser.add_argument("--config", type=str, default="config/config.yaml")
     args = parser.parse_args()
 
-    X, y = load_data(args.data)
-    X = np.expand_dims(X, -1)  # add channel dimension
-    model = build_cnn(X.shape[1:])
-    
-    history = model.fit(X, y, epochs=args.epochs, batch_size=args.batch, validation_split=0.2)
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+
+    X, y = load_data("data/processed")
+    X = np.expand_dims(X, -1)
+
+    model = build_cnn(X.shape[1:], **cfg["model"])
+    logdir = "logs"
+    os.makedirs(logdir, exist_ok=True)
+    tb_callback = TensorBoard(log_dir=logdir)
+
+    model.fit(X, y, batch_size=cfg["training"]["batch_size"],
+              epochs=cfg["training"]["epochs"],
+              validation_split=cfg["training"]["validation_split"],
+              callbacks=[tb_callback])
     os.makedirs("models/saved_model", exist_ok=True)
     model.save("models/saved_model/cnn_model.h5")
-    print("[INFO] Model saved to models/saved_model/cnn_model.h5")
+    print("[INFO] Model saved.")
+
